@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Mileage Tracker</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mileage">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Orbitron:wght@500;700;900&display=swap');
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#0a0a1a;--bg2:#12122a;--bg3:#1a1a3a;
+  --text:#e0e0ff;--text2:#8888bb;
+  --neon-pink:#ff2d95;--neon-pink2:#cc1a70;
+  --neon-cyan:#00f0ff;--neon-cyan2:#00bfcc;
+  --neon-yellow:#ffe600;
+  --neon-green:#39ff14;
+  --neon-purple:#b347ea;
+  --danger:#ff2d55;--danger2:#cc1a3a;
+  --card:rgba(20,20,50,.85);--border:rgba(255,45,149,.25);
+  --shadow:0 0 20px rgba(255,45,149,.15), 0 0 40px rgba(0,240,255,.05);
+  --radius:12px;
+  --toast-bg:rgba(255,45,149,.9);--toast-text:#fff;
+  --glow-pink:0 0 10px rgba(255,45,149,.6), 0 0 20px rgba(255,45,149,.3);
+  --glow-cyan:0 0 10px rgba(0,240,255,.6), 0 0 20px rgba(0,240,255,.3);
+}
+
+html{font-family:'Orbitron',sans-serif;
+  font-size:16px;background:var(--bg);color:var(--text);
+  -webkit-tap-highlight-color:transparent}
+body{max-width:500px;margin:0 auto;padding-bottom:env(safe-area-inset-bottom,20px);
+  background:linear-gradient(180deg,#0a0a1a 0%,#0d0d2b 50%,#0a0a1a 100%);
+  min-height:100vh}
+
+/* Scanlines overlay */
+body::before{content:'';position:fixed;inset:0;z-index:999;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.08) 2px,rgba(0,0,0,.08) 4px)}
+
+/* Stars background */
+body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background-image:
+    radial-gradient(1px 1px at 10% 20%,rgba(255,255,255,.4),transparent),
+    radial-gradient(1px 1px at 30% 60%,rgba(255,255,255,.3),transparent),
+    radial-gradient(1px 1px at 50% 10%,rgba(255,255,255,.5),transparent),
+    radial-gradient(1px 1px at 70% 40%,rgba(255,255,255,.3),transparent),
+    radial-gradient(1px 1px at 90% 80%,rgba(255,255,255,.4),transparent),
+    radial-gradient(1px 1px at 15% 85%,rgba(255,255,255,.3),transparent),
+    radial-gradient(1px 1px at 45% 45%,rgba(255,255,255,.2),transparent),
+    radial-gradient(1px 1px at 80% 15%,rgba(255,255,255,.4),transparent),
+    radial-gradient(1.5px 1.5px at 25% 35%,rgba(0,240,255,.5),transparent),
+    radial-gradient(1.5px 1.5px at 65% 75%,rgba(255,45,149,.4),transparent)}
+
+/* Header */
+.header{position:sticky;top:0;z-index:100;
+  background:linear-gradient(180deg,rgba(10,10,26,.98),rgba(10,10,26,.92));
+  border-bottom:2px solid var(--neon-pink);
+  padding:12px 20px 8px;padding-top:calc(env(safe-area-inset-top,12px) + 8px);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  box-shadow:0 2px 20px rgba(255,45,149,.3)}
+.header-top{display:flex;align-items:center;justify-content:space-between}
+.header h1{font-family:'Press Start 2P',monospace;font-size:11px;
+  color:var(--neon-cyan);text-shadow:var(--glow-cyan);letter-spacing:1px}
+.header .total{font-family:'Orbitron',sans-serif;font-size:16px;font-weight:900;
+  color:var(--neon-yellow);text-shadow:0 0 10px rgba(255,230,0,.6)}
+.header .subtitle{font-family:'Press Start 2P',monospace;font-size:7px;
+  color:var(--neon-pink);text-shadow:var(--glow-pink);margin-top:2px;
+  letter-spacing:.5px;opacity:.8}
+
+/* Road animation strip */
+.road-strip{height:28px;overflow:hidden;position:relative;
+  background:#111;border-top:2px solid #333;border-bottom:2px solid #333}
+.road-strip .road{height:100%;position:relative;
+  background:linear-gradient(0deg,#1a1a1a,#222,#1a1a1a)}
+.road-strip .dashes{position:absolute;top:50%;left:0;height:3px;margin-top:-1.5px;
+  width:200%;
+  background:repeating-linear-gradient(90deg,var(--neon-yellow) 0,var(--neon-yellow) 20px,transparent 20px,transparent 40px);
+  animation:roadScroll 1.5s linear infinite;
+  opacity:.7}
+@keyframes roadScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+.car-container{position:absolute;top:50%;transform:translateY(-50%);
+  left:30%;z-index:2;transition:left 2s ease-in-out}
+.car-container.driving{animation:carBounce .15s ease-in-out infinite alternate}
+@keyframes carBounce{0%{transform:translateY(-50%) translateY(-1px)}100%{transform:translateY(-50%) translateY(1px)}}
+
+/* Plymouth Satellite pixel art */
+.pixel-car{width:48px;height:18px;position:relative;image-rendering:pixelated}
+
+/* Section */
+.section{padding:16px 20px}
+.section-title{font-family:'Press Start 2P',monospace;font-size:9px;font-weight:400;
+  text-transform:uppercase;letter-spacing:1px;color:var(--neon-cyan);
+  text-shadow:var(--glow-cyan);margin-bottom:12px}
+
+/* Form */
+.form-card{background:var(--card);border-radius:var(--radius);
+  box-shadow:var(--shadow);padding:16px;
+  border:1px solid var(--border);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.form-row{margin-bottom:14px;position:relative}
+.form-row:last-child{margin-bottom:0}
+.form-row label{display:block;font-size:10px;font-weight:700;
+  color:var(--neon-pink);margin-bottom:5px;letter-spacing:1px;
+  text-transform:uppercase}
+.form-row input{width:100%;height:46px;border-radius:8px;
+  border:1px solid rgba(0,240,255,.2);
+  background:rgba(10,10,30,.8);color:var(--neon-green);
+  font-size:16px;padding:0 12px;
+  font-family:'Orbitron',sans-serif;outline:none;transition:border .2s,box-shadow .2s}
+.form-row input:focus{border-color:var(--neon-cyan);box-shadow:var(--glow-cyan)}
+.form-row input::placeholder{color:rgba(136,136,187,.4);font-size:13px}
+.form-row input.error{border-color:var(--danger);box-shadow:0 0 10px rgba(255,45,85,.4)}
+.form-row .error-msg{font-size:10px;color:var(--danger);margin-top:4px;display:none;
+  font-family:'Press Start 2P',monospace;font-size:7px}
+.form-row input.error ~ .error-msg{display:block}
+
+/* Date input styling */
+.form-row input[type="date"]{color-scheme:dark}
+.form-row input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1) hue-rotate(180deg);opacity:.5}
+
+.odo-row{display:flex;gap:10px}
+.odo-row .form-row{flex:1}
+.miles-display{text-align:center;padding:8px 0 4px;font-size:16px;
+  color:var(--neon-yellow);font-weight:900;min-height:28px;
+  text-shadow:0 0 10px rgba(255,230,0,.5);
+  font-family:'Orbitron',sans-serif}
+
+.btn-row{display:flex;gap:10px;margin-top:16px}
+.btn{height:46px;border-radius:10px;border:none;font-size:12px;font-weight:700;
+  font-family:'Orbitron',sans-serif;cursor:pointer;padding:0 20px;transition:all .15s;
+  display:flex;align-items:center;justify-content:center;flex:1;
+  -webkit-appearance:none;text-transform:uppercase;letter-spacing:1px}
+.btn-primary{background:linear-gradient(135deg,var(--neon-pink),var(--neon-purple));color:#fff;
+  box-shadow:0 0 15px rgba(255,45,149,.4);
+  border:1px solid rgba(255,255,255,.1)}
+.btn-primary:active{box-shadow:0 0 25px rgba(255,45,149,.7);transform:scale(.97)}
+.btn-cancel{background:rgba(40,40,80,.8);color:var(--text2);
+  border:1px solid rgba(136,136,187,.2)}
+.btn-cancel:active{background:rgba(60,60,100,.8)}
+
+.edit-banner{background:linear-gradient(90deg,var(--neon-cyan),var(--neon-purple));
+  color:#fff;padding:10px 16px;
+  border-radius:var(--radius) var(--radius) 0 0;margin:-16px -16px 16px;
+  font-family:'Press Start 2P',monospace;font-size:8px;display:none;text-align:center;
+  letter-spacing:1px;text-shadow:0 1px 2px rgba(0,0,0,.5)}
+.edit-banner.show{display:block}
+
+/* Suggestions */
+.suggestions{position:absolute;top:100%;left:0;right:0;z-index:50;
+  background:rgba(20,20,50,.95);border:1px solid rgba(0,240,255,.3);border-radius:8px;
+  box-shadow:0 4px 20px rgba(0,240,255,.15);max-height:150px;overflow-y:auto;
+  display:none;margin-top:2px;backdrop-filter:blur(8px)}
+.suggestions.open{display:block}
+.suggestions div{padding:10px 12px;font-size:13px;cursor:pointer;color:var(--neon-green);
+  font-family:'Orbitron',sans-serif}
+.suggestions div:active{background:rgba(0,240,255,.1)}
+.suggestions div+div{border-top:1px solid rgba(0,240,255,.1)}
+
+/* Trip List */
+.trip-item{background:var(--card);border-radius:var(--radius);
+  box-shadow:var(--shadow);padding:14px 16px;margin-bottom:10px;
+  border:1px solid var(--border);cursor:pointer;transition:all .15s;
+  position:relative;backdrop-filter:blur(8px)}
+.trip-item:active{background:rgba(255,45,149,.08);border-color:rgba(255,45,149,.4)}
+.trip-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px}
+.trip-dest{font-size:14px;font-weight:700;flex:1;margin-right:8px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)}
+.trip-miles{font-size:16px;font-weight:900;color:var(--neon-yellow);white-space:nowrap;
+  text-shadow:0 0 8px rgba(255,230,0,.4);font-family:'Orbitron',sans-serif}
+.trip-bottom{display:flex;justify-content:space-between;align-items:baseline}
+.trip-date{font-size:11px;color:var(--neon-cyan);opacity:.7}
+.trip-purpose{font-size:11px;color:var(--text2);text-align:right;
+  flex:1;margin-left:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.trip-delete{position:absolute;top:10px;right:10px;width:28px;height:28px;
+  border-radius:50%;border:1px solid var(--danger);background:rgba(255,45,85,.15);color:var(--danger);
+  font-size:16px;font-weight:700;cursor:pointer;display:none;
+  align-items:center;justify-content:center;line-height:1}
+.trip-item:hover .trip-delete,.trip-item .trip-delete.show{display:flex}
+
+.empty-state{text-align:center;padding:40px 20px;color:var(--text2);
+  font-family:'Press Start 2P',monospace;font-size:8px;line-height:2}
+
+/* Export buttons */
+.export-row{display:flex;gap:10px;margin-bottom:16px}
+.btn-export{height:42px;border-radius:10px;
+  border:1px solid rgba(0,240,255,.25);
+  background:rgba(0,240,255,.08);color:var(--neon-cyan);
+  font-size:10px;font-weight:700;letter-spacing:.5px;
+  font-family:'Orbitron',sans-serif;cursor:pointer;flex:1;
+  transition:all .15s;-webkit-appearance:none;text-transform:uppercase}
+.btn-export:active{background:rgba(0,240,255,.2);box-shadow:var(--glow-cyan)}
+
+/* Toast */
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--toast-bg);color:var(--toast-text);padding:14px 24px;
+  border-radius:24px;font-family:'Press Start 2P',monospace;font-size:8px;
+  opacity:0;transition:opacity .3s,transform .3s;pointer-events:none;z-index:200;
+  white-space:nowrap;box-shadow:0 0 20px rgba(255,45,149,.5);
+  border:1px solid rgba(255,255,255,.2);line-height:1.6;text-align:center;
+  max-width:90vw}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* Delete confirm modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:300;
+  display:none;align-items:center;justify-content:center;padding:20px;
+  backdrop-filter:blur(4px)}
+.modal-overlay.show{display:flex}
+.modal{background:linear-gradient(180deg,rgba(20,20,50,.98),rgba(10,10,30,.98));
+  border-radius:16px;padding:24px;
+  max-width:300px;width:100%;text-align:center;
+  box-shadow:0 0 40px rgba(255,45,149,.2);
+  border:1px solid rgba(255,45,149,.3)}
+.modal h3{font-family:'Press Start 2P',monospace;font-size:10px;margin-bottom:12px;
+  color:var(--neon-pink);text-shadow:var(--glow-pink)}
+.modal p{font-size:12px;color:var(--text2);margin-bottom:20px}
+.modal-btns{display:flex;gap:10px}
+.modal-btns .btn{font-size:11px;height:42px}
+.btn-danger{background:linear-gradient(135deg,var(--danger),#cc1a3a);color:#fff;
+  box-shadow:0 0 10px rgba(255,45,85,.3);border:1px solid rgba(255,255,255,.1)}
+.btn-danger:active{box-shadow:0 0 20px rgba(255,45,85,.6)}
+
+/* "Built with Claude" badge */
+.claude-badge{text-align:center;padding:20px;margin-top:10px}
+.claude-badge span{font-family:'Press Start 2P',monospace;font-size:6px;
+  color:var(--neon-purple);opacity:.5;letter-spacing:1px}
+
+/* Neon flicker animation for header */
+@keyframes neonFlicker{
+  0%,19%,21%,23%,25%,54%,56%,100%{opacity:1}
+  20%,24%,55%{opacity:.6}}
+.header h1{animation:neonFlicker 3s infinite}
+
+/* Confetti animation for saves */
+.confetti-container{position:fixed;top:0;left:0;width:100%;height:100%;
+  pointer-events:none;z-index:500;overflow:hidden}
+.confetti{position:absolute;top:-10px;width:8px;height:8px;opacity:.9}
+@keyframes confettiFall{
+  0%{transform:translateY(-10px) rotate(0deg);opacity:1}
+  100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <h1>MILE HAULER</h1>
+      <div class="subtitle">10-4 GOOD BUDDY</div>
+    </div>
+    <div class="total" id="totalMiles">0 MI</div>
+  </div>
+</div>
+
+<!-- Animated road with Plymouth Satellite -->
+<div class="road-strip">
+  <div class="road">
+    <div class="dashes"></div>
+    <div class="car-container" id="carContainer">
+      <svg class="pixel-car" viewBox="0 0 48 18" xmlns="http://www.w3.org/2000/svg">
+        <!-- Plymouth Satellite pixel art - long hood, muscle car profile -->
+        <!-- Body -->
+        <rect x="4" y="6" width="40" height="7" fill="#ff2d95"/>
+        <rect x="6" y="6" width="36" height="1" fill="#ff5aaa"/>
+        <!-- Roof -->
+        <rect x="22" y="2" width="14" height="5" fill="#ff2d95"/>
+        <rect x="21" y="3" width="1" height="4" fill="#ff2d95"/>
+        <rect x="36" y="3" width="1" height="4" fill="#ff2d95"/>
+        <!-- Windows -->
+        <rect x="23" y="3" width="5" height="3" fill="#00f0ff" opacity=".7"/>
+        <rect x="29" y="3" width="5" height="3" fill="#00f0ff" opacity=".6"/>
+        <!-- Chrome stripe -->
+        <rect x="4" y="9" width="40" height="1" fill="#ffe600" opacity=".6"/>
+        <!-- Hood (long!) -->
+        <rect x="2" y="7" width="3" height="5" fill="#cc1a70"/>
+        <!-- Headlights -->
+        <rect x="2" y="8" width="2" height="2" fill="#ffe600"/>
+        <!-- Taillights -->
+        <rect x="42" y="8" width="3" height="2" fill="#ff2d55"/>
+        <!-- Bumpers -->
+        <rect x="0" y="9" width="2" height="3" fill="#888"/>
+        <rect x="44" y="9" width="2" height="3" fill="#888"/>
+        <!-- Wheels -->
+        <circle cx="12" cy="14" r="3" fill="#222"/>
+        <circle cx="12" cy="14" r="1.5" fill="#555"/>
+        <circle cx="36" cy="14" r="3" fill="#222"/>
+        <circle cx="36" cy="14" r="1.5" fill="#555"/>
+        <!-- Exhaust glow -->
+        <rect x="44" y="11" width="3" height="1" fill="#ff2d95" opacity=".4"/>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title" id="formTitle">&#x1F4CB; Log Your Haul</div>
+  <div class="form-card">
+    <div class="edit-banner" id="editBanner">&#x1F527; Fixin' The Logs, Over</div>
+    <div class="form-row">
+      <label for="tripDate">Date</label>
+      <input type="date" id="tripDate">
+    </div>
+    <div class="odo-row">
+      <div class="form-row">
+        <label for="odoStart">Odo Start</label>
+        <input type="number" id="odoStart" inputmode="decimal" placeholder="45200">
+      </div>
+      <div class="form-row">
+        <label for="odoEnd">Odo End</label>
+        <input type="number" id="odoEnd" inputmode="decimal" placeholder="45450">
+        <div class="error-msg">NEGATORY, END > START</div>
+      </div>
+    </div>
+    <div class="miles-display" id="milesDisplay"></div>
+    <div class="form-row">
+      <label for="destination">Destination</label>
+      <input type="text" id="destination" placeholder="Client HQ, Dallas" autocomplete="off">
+      <div class="suggestions" id="destSuggestions"></div>
+    </div>
+    <div class="form-row">
+      <label for="purpose">Business Purpose</label>
+      <input type="text" id="purpose" placeholder="Client meeting" autocomplete="off">
+      <div class="suggestions" id="purpSuggestions"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-cancel" id="cancelBtn" style="display:none">Abort</button>
+      <button class="btn btn-primary" id="saveBtn">Log It, Over</button>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">&#x1F4E1; Dispatch Log</div>
+  <div class="export-row" id="exportRow" style="display:none">
+    <button class="btn-export" id="csvBtn">Download CSV</button>
+    <button class="btn-export" id="copyBtn">Copy to Clipboard</button>
+  </div>
+  <div id="tripList"></div>
+</div>
+
+<div class="claude-badge"><span>BUILT BY CLAUDE &bull; POWERED BY NEON</span></div>
+
+<div class="toast" id="toast"></div>
+
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal">
+    <h3>Scrap This Run?</h3>
+    <p id="deleteMsg">This haul's gettin' tossed, good buddy.</p>
+    <div class="modal-btns">
+      <button class="btn btn-cancel" id="deleteCancelBtn">Negatory</button>
+      <button class="btn btn-danger" id="deleteConfirmBtn">10-4, Scrap It</button>
+    </div>
+  </div>
+</div>
+
+<div class="confetti-container" id="confettiContainer"></div>
+
+<script>
+(function(){
+  // ---- CB Radio Messages ----
+  const CB_SAVE = [
+    "10-4 good buddy! {miles} miles on the books!",
+    "That's a big 10-4! {miles} miles logged, rubber side down!",
+    "Copy that! {miles} miles hauled and accounted for!",
+    "Breaker breaker, {miles} miles in the log! Keep on truckin'!",
+    "We got ourselves a convoy! {miles} miles recorded!",
+    "Roger that! {miles} miles. Hammer down!",
+    "Put the pedal to the metal! {miles} miles logged!",
+    "{miles} miles?! That Satellite's eatin' asphalt! Logged!"
+  ];
+  const CB_UPDATE = [
+    "10-4, log's been corrected! Over and out!",
+    "Copy that, dispatch log updated! Keep the shiny side up!",
+    "Roger roger, haul record fixed! Breaker breaker!"
+  ];
+  const CB_DELETE = [
+    "That run's been scrubbed from the log. Over!",
+    "10-4, haul erased! Like it never happened, good buddy!",
+    "Copy that, trip's gone! Poof! Over and out!"
+  ];
+  const CB_COPY = [
+    "Log copied to clipboard! Send it to the bean counters!",
+    "10-4, data's on your clipboard! Tax man's gonna love it!",
+    "Breaker breaker, log copied! Over and out!"
+  ];
+  const CB_CSV = [
+    "CSV's rollin' out! Give that to your accountant, good buddy!",
+    "10-4, file downloaded! The IRS won't know what hit 'em!",
+    "That's a big download! Spreadsheet's hot off the press!"
+  ];
+  const CB_EMPTY = "Radio silence out here...\nLog your first haul, good buddy!";
+
+  function randomCB(arr, miles){
+    const msg = arr[Math.floor(Math.random()*arr.length)];
+    return miles ? msg.replace('{miles}',miles) : msg;
+  }
+
+  // ---- Confetti ----
+  function fireConfetti(){
+    const container = document.getElementById('confettiContainer');
+    const colors = ['#ff2d95','#00f0ff','#ffe600','#39ff14','#b347ea','#ff6b35'];
+    for(let i=0;i<30;i++){
+      const el = document.createElement('div');
+      el.className = 'confetti';
+      el.style.left = Math.random()*100+'%';
+      el.style.background = colors[Math.floor(Math.random()*colors.length)];
+      el.style.animation = `confettiFall ${1.5+Math.random()*2}s ease-out forwards`;
+      el.style.animationDelay = Math.random()*0.5+'s';
+      el.style.borderRadius = Math.random()>.5?'50%':'2px';
+      el.style.width = (4+Math.random()*6)+'px';
+      el.style.height = (4+Math.random()*6)+'px';
+      container.appendChild(el);
+      setTimeout(()=>el.remove(),4000);
+    }
+  }
+
+  // ---- Car animation ----
+  function driveCar(){
+    const car = document.getElementById('carContainer');
+    car.classList.add('driving');
+    car.style.left = '30%';
+    setTimeout(()=>{car.style.left='70%'},50);
+    setTimeout(()=>{
+      car.style.left='30%';
+      setTimeout(()=>car.classList.remove('driving'),2000);
+    },2000);
+  }
+
+  // ---- Data layer ----
+  const TRIPS_KEY = 'mileageTrips';
+  const DEST_KEY = 'mileageDestinations';
+  const PURP_KEY = 'mileagePurposes';
+
+  function getTrips(){ return JSON.parse(localStorage.getItem(TRIPS_KEY)||'[]'); }
+  function saveTrips(t){ localStorage.setItem(TRIPS_KEY, JSON.stringify(t)); }
+  function getList(key){ return JSON.parse(localStorage.getItem(key)||'[]'); }
+  function saveList(key, arr){ localStorage.setItem(key, JSON.stringify(arr)); }
+
+  function addSuggestion(key, val){
+    if(!val||!val.trim()) return;
+    val = val.trim();
+    const list = getList(key);
+    const idx = list.findIndex(s => s.toLowerCase() === val.toLowerCase());
+    if(idx > -1) list.splice(idx, 1);
+    list.unshift(val);
+    if(list.length > 50) list.length = 50;
+    saveList(key, list);
+  }
+
+  // ---- DOM refs ----
+  const $ = id => document.getElementById(id);
+  const tripDate = $('tripDate');
+  const odoStart = $('odoStart');
+  const odoEnd = $('odoEnd');
+  const destination = $('destination');
+  const purpose = $('purpose');
+  const milesDisplay = $('milesDisplay');
+  const saveBtn = $('saveBtn');
+  const cancelBtn = $('cancelBtn');
+  const editBanner = $('editBanner');
+  const formTitle = $('formTitle');
+  const totalMiles = $('totalMiles');
+  const tripList = $('tripList');
+  const exportRow = $('exportRow');
+  const csvBtn = $('csvBtn');
+  const copyBtn = $('copyBtn');
+  const toast = $('toast');
+  const deleteModal = $('deleteModal');
+  const deleteCancelBtn = $('deleteCancelBtn');
+  const deleteConfirmBtn = $('deleteConfirmBtn');
+  const deleteMsg = $('deleteMsg');
+  const destSuggestions = $('destSuggestions');
+  const purpSuggestions = $('purpSuggestions');
+
+  let editingId = null;
+  let deletingId = null;
+  let toastTimer = null;
+
+  // ---- Init ----
+  function init(){
+    tripDate.value = new Date().toISOString().slice(0,10);
+    render();
+  }
+
+  // ---- Miles calc ----
+  function calcMiles(){
+    const s = parseFloat(odoStart.value);
+    const e = parseFloat(odoEnd.value);
+    if(!isNaN(s) && !isNaN(e) && e > s){
+      const m = Math.round((e - s)*10)/10;
+      milesDisplay.textContent = m + ' MILES';
+      odoEnd.classList.remove('error');
+      return m;
+    } else if(!isNaN(s) && !isNaN(e) && e <= s && odoEnd.value !== ''){
+      milesDisplay.textContent = '';
+      odoEnd.classList.add('error');
+      return null;
+    }
+    milesDisplay.textContent = '';
+    odoEnd.classList.remove('error');
+    return null;
+  }
+  odoStart.addEventListener('input', calcMiles);
+  odoEnd.addEventListener('input', calcMiles);
+
+  // ---- Save ----
+  saveBtn.addEventListener('click', function(){
+    const miles = calcMiles();
+    if(miles === null || miles <= 0){
+      odoEnd.classList.add('error');
+      odoEnd.focus();
+      return;
+    }
+    if(!tripDate.value){ tripDate.focus(); return; }
+    if(!destination.value.trim()){ destination.focus(); return; }
+
+    const trip = {
+      id: editingId || Date.now().toString(36) + Math.random().toString(36).slice(2,6),
+      date: tripDate.value,
+      odometerStart: parseFloat(odoStart.value),
+      odometerEnd: parseFloat(odoEnd.value),
+      miles: miles,
+      destination: destination.value.trim(),
+      purpose: purpose.value.trim()
+    };
+
+    const trips = getTrips();
+    if(editingId){
+      const idx = trips.findIndex(t => t.id === editingId);
+      if(idx > -1) trips[idx] = trip;
+      exitEdit();
+      showToast(randomCB(CB_UPDATE));
+    } else {
+      trips.unshift(trip);
+      showToast(randomCB(CB_SAVE, trip.miles));
+      fireConfetti();
+      driveCar();
+    }
+    saveTrips(trips);
+
+    addSuggestion(DEST_KEY, trip.destination);
+    addSuggestion(PURP_KEY, trip.purpose);
+
+    clearForm();
+    render();
+  });
+
+  // ---- Edit ----
+  function enterEdit(trip){
+    editingId = trip.id;
+    tripDate.value = trip.date;
+    odoStart.value = trip.odometerStart;
+    odoEnd.value = trip.odometerEnd;
+    destination.value = trip.destination;
+    purpose.value = trip.purpose || '';
+    calcMiles();
+    editBanner.classList.add('show');
+    cancelBtn.style.display = '';
+    saveBtn.textContent = 'Update, Over';
+    formTitle.innerHTML = '&#x1F527; Fix The Log';
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  function exitEdit(){
+    editingId = null;
+    editBanner.classList.remove('show');
+    cancelBtn.style.display = 'none';
+    saveBtn.textContent = 'Log It, Over';
+    formTitle.innerHTML = '&#x1F4CB; Log Your Haul';
+  }
+
+  cancelBtn.addEventListener('click', function(){
+    exitEdit();
+    clearForm();
+  });
+
+  // ---- Delete ----
+  function confirmDelete(id, dest){
+    deletingId = id;
+    deleteMsg.textContent = 'Scrap the run to ' + dest + '?';
+    deleteModal.classList.add('show');
+  }
+  deleteCancelBtn.addEventListener('click', function(){
+    deleteModal.classList.remove('show');
+    deletingId = null;
+  });
+  deleteModal.addEventListener('click', function(e){
+    if(e.target === deleteModal){
+      deleteModal.classList.remove('show');
+      deletingId = null;
+    }
+  });
+  deleteConfirmBtn.addEventListener('click', function(){
+    if(!deletingId) return;
+    let trips = getTrips();
+    trips = trips.filter(t => t.id !== deletingId);
+    saveTrips(trips);
+    if(editingId === deletingId) exitEdit();
+    deleteModal.classList.remove('show');
+    deletingId = null;
+    clearForm();
+    render();
+    showToast(randomCB(CB_DELETE));
+  });
+
+  // ---- Clear form ----
+  function clearForm(){
+    tripDate.value = new Date().toISOString().slice(0,10);
+    odoStart.value = '';
+    odoEnd.value = '';
+    destination.value = '';
+    purpose.value = '';
+    milesDisplay.textContent = '';
+    odoEnd.classList.remove('error');
+  }
+
+  // ---- Render ----
+  function render(){
+    const trips = getTrips();
+    trips.sort((a,b) => (b.date > a.date ? 1 : b.date < a.date ? -1 : 0));
+
+    const total = trips.reduce((s,t) => s + t.miles, 0);
+    totalMiles.textContent = total.toLocaleString() + ' MI';
+    exportRow.style.display = trips.length ? '' : 'none';
+
+    if(!trips.length){
+      tripList.innerHTML = '<div class="empty-state">'+CB_EMPTY+'</div>';
+      return;
+    }
+
+    tripList.innerHTML = trips.map(t => `
+      <div class="trip-item" data-id="${t.id}">
+        <button class="trip-delete" data-del="${t.id}" aria-label="Delete">&times;</button>
+        <div class="trip-top">
+          <span class="trip-dest">${esc(t.destination)}</span>
+          <span class="trip-miles">${t.miles} mi</span>
+        </div>
+        <div class="trip-bottom">
+          <span class="trip-date">${formatDate(t.date)}</span>
+          <span class="trip-purpose">${esc(t.purpose||'')}</span>
+        </div>
+      </div>
+    `).join('');
+
+    tripList.querySelectorAll('.trip-delete').forEach(btn => btn.classList.add('show'));
+  }
+
+  function esc(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+  function formatDate(iso){
+    const [y,m,d] = iso.split('-');
+    return parseInt(m)+'/'+parseInt(d)+'/'+y;
+  }
+
+  // ---- Trip list events (delegation) ----
+  tripList.addEventListener('click', function(e){
+    const del = e.target.closest('[data-del]');
+    if(del){
+      e.stopPropagation();
+      const id = del.dataset.del;
+      const trips = getTrips();
+      const trip = trips.find(t => t.id === id);
+      if(trip) confirmDelete(id, trip.destination);
+      return;
+    }
+    const item = e.target.closest('.trip-item');
+    if(item){
+      const id = item.dataset.id;
+      const trips = getTrips();
+      const trip = trips.find(t => t.id === id);
+      if(trip) enterEdit(trip);
+    }
+  });
+
+  // ---- Suggestions ----
+  function setupSuggestions(input, dropdown, key){
+    let open = false;
+
+    function showSuggestions(){
+      const val = input.value.toLowerCase();
+      const list = getList(key);
+      const filtered = val ? list.filter(s => s.toLowerCase().includes(val)) : list.slice(0,8);
+      if(!filtered.length){ hide(); return; }
+      dropdown.innerHTML = filtered.slice(0,8).map(s => `<div>${esc(s)}</div>`).join('');
+      dropdown.classList.add('open');
+      open = true;
+    }
+
+    function hide(){ dropdown.classList.remove('open'); open = false; }
+
+    input.addEventListener('focus', showSuggestions);
+    input.addEventListener('input', showSuggestions);
+
+    dropdown.addEventListener('mousedown', function(e){
+      e.preventDefault();
+    });
+    dropdown.addEventListener('click', function(e){
+      const div = e.target.closest('div');
+      if(div){ input.value = div.textContent; hide(); }
+    });
+
+    document.addEventListener('click', function(e){
+      if(!input.contains(e.target) && !dropdown.contains(e.target)) hide();
+    });
+  }
+
+  setupSuggestions(destination, destSuggestions, DEST_KEY);
+  setupSuggestions(purpose, purpSuggestions, PURP_KEY);
+
+  // ---- Export ----
+  function buildCSV(){
+    const trips = getTrips();
+    trips.sort((a,b) => (a.date > b.date ? 1 : a.date < b.date ? -1 : 0));
+    const rows = [['Date','Odometer Start','Odometer End','Miles','Destination','Purpose']];
+    trips.forEach(t => {
+      rows.push([
+        t.date,
+        t.odometerStart,
+        t.odometerEnd,
+        t.miles,
+        '"'+(t.destination||'').replace(/"/g,'""')+'"',
+        '"'+(t.purpose||'').replace(/"/g,'""')+'"'
+      ]);
+    });
+    return rows.map(r => r.join(',')).join('\n');
+  }
+
+  csvBtn.addEventListener('click', function(){
+    const csv = buildCSV();
+    const blob = new Blob([csv], {type:'text/csv'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'mileage_' + new Date().toISOString().slice(0,10) + '.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast(randomCB(CB_CSV));
+  });
+
+  copyBtn.addEventListener('click', function(){
+    const csv = buildCSV();
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(csv).then(()=> showToast(randomCB(CB_COPY)));
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = csv;
+      ta.style.cssText = 'position:fixed;opacity:0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast(randomCB(CB_COPY));
+    }
+  });
+
+  // ---- Toast ----
+  function showToast(msg){
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=> toast.classList.remove('show'), 3000);
+  }
+
+  // ---- Service Worker ----
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('service-worker.js').catch(()=>{});
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>

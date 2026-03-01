@@ -1,0 +1,17 @@
+{
+  "name": "Mileage Tracker",
+  "short_name": "Mileage",
+  "description": "Simple business mileage tracker",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0A84FF",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
