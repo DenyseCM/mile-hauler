@@ -1,9 +1,11 @@
-const CACHE_NAME = 'mileage-tracker-v1';
+const CACHE_NAME = 'mileage-tracker-v2';
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
-  './icon.svg'
+  './icon.svg',
+  './icon-512.png',
+  './apple-touch-icon.png'
 ];
 
 self.addEventListener('install', e => {

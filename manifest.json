@@ -1,17 +1,27 @@
 {
-  "name": "Mileage Tracker",
-  "short_name": "Mileage",
-  "description": "Simple business mileage tracker",
+  "name": "Mile Hauler",
+  "short_name": "Mile Hauler",
+  "description": "80s neon retro business mileage tracker",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#0A84FF",
+  "background_color": "#0a0a1a",
+  "theme_color": "#ff2d95",
   "icons": [
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
     {
       "src": "icon.svg",
       "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "type": "image/svg+xml"
     }
   ]
 }
