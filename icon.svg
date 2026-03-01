@@ -1,17 +1,124 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="100" fill="#0A84FF"/>
-  <g transform="translate(256,280)">
-    <circle r="140" fill="none" stroke="#fff" stroke-width="24"/>
-    <circle r="8" fill="#fff"/>
-    <line x1="0" y1="0" x2="0" y2="-95" stroke="#fff" stroke-width="16" stroke-linecap="round"/>
-    <line x1="0" y1="0" x2="60" y2="-40" stroke="#fff" stroke-width="12" stroke-linecap="round"/>
-    <g fill="#fff" font-family="-apple-system,system-ui,sans-serif" font-size="36" text-anchor="middle">
-      <text y="-110">0</text>
-      <text x="95" y="-55" transform="rotate(30,95,-55)">50</text>
-      <text x="110" y="10">100</text>
-      <text x="95" y="75" transform="rotate(-30,95,75)">150</text>
-      <text y="125">200</text>
-    </g>
+  <defs>
+    <!-- Neon pink glow -->
+    <filter id="gp" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <!-- Cyan glow -->
+    <filter id="gc" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <!-- Yellow glow -->
+    <filter id="gy" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <!-- Background gradient -->
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0d0d2b"/>
+      <stop offset="100%" stop-color="#0a0a1a"/>
+    </linearGradient>
+    <!-- Road gradient -->
+    <linearGradient id="rd" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1a1a2a"/>
+      <stop offset="50%" stop-color="#222238"/>
+      <stop offset="100%" stop-color="#1a1a2a"/>
+    </linearGradient>
+    <!-- Button gradient -->
+    <linearGradient id="btn" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ff2d95"/>
+      <stop offset="100%" stop-color="#b347ea"/>
+    </linearGradient>
+    <!-- Stars -->
+    <radialGradient id="star" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fff" stop-opacity=".8"/>
+      <stop offset="100%" stop-color="#fff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+
+  <!-- Stars -->
+  <circle cx="60" cy="70" r="2" fill="#fff" opacity=".5"/>
+  <circle cx="140" cy="40" r="1.5" fill="#00f0ff" opacity=".6"/>
+  <circle cx="300" cy="55" r="2" fill="#fff" opacity=".4"/>
+  <circle cx="420" cy="80" r="1.5" fill="#ff2d95" opacity=".5"/>
+  <circle cx="470" cy="45" r="1" fill="#fff" opacity=".6"/>
+  <circle cx="80" cy="130" r="1" fill="#fff" opacity=".3"/>
+  <circle cx="380" cy="110" r="1.5" fill="#fff" opacity=".4"/>
+  <circle cx="240" cy="35" r="1" fill="#ffe600" opacity=".5"/>
+  <circle cx="50" cy="200" r="1" fill="#fff" opacity=".3"/>
+  <circle cx="460" cy="180" r="1.5" fill="#00f0ff" opacity=".3"/>
+
+  <!-- "MILE" text top -->
+  <text x="256" y="115" fill="#00f0ff" font-family="monospace" font-size="72" font-weight="900" text-anchor="middle" letter-spacing="12" filter="url(#gc)">MILE</text>
+
+  <!-- "HAULER" text -->
+  <text x="256" y="175" fill="#ff2d95" font-family="monospace" font-size="58" font-weight="900" text-anchor="middle" letter-spacing="8" filter="url(#gp)">HAULER</text>
+
+  <!-- Road -->
+  <rect x="0" y="280" width="512" height="80" fill="url(#rd)"/>
+  <line x1="0" y1="280" x2="512" y2="280" stroke="#444" stroke-width="2"/>
+  <line x1="0" y1="360" x2="512" y2="360" stroke="#444" stroke-width="2"/>
+
+  <!-- Road dashes -->
+  <g opacity=".6">
+    <rect x="20" y="317" width="30" height="4" rx="2" fill="#ffe600"/>
+    <rect x="80" y="317" width="30" height="4" rx="2" fill="#ffe600"/>
+    <rect x="140" y="317" width="30" height="4" rx="2" fill="#ffe600"/>
+    <rect x="200" y="317" width="30" height="4" rx="2" fill="#ffe600"/>
+    <rect x="260" y="317" width="30" height="4" rx="2" fill="#ffe600"/>
+    <rect x="320" y="317" width="30" height="4" rx="2" fill="#ffe600"/>
+    <rect x="380" y="317" width="30" height="4" rx="2" fill="#ffe600"/>
+    <rect x="440" y="317" width="30" height="4" rx="2" fill="#ffe600"/>
   </g>
-  <text x="256" y="105" fill="#fff" font-family="-apple-system,system-ui,sans-serif" font-size="56" font-weight="700" text-anchor="middle">MILES</text>
+
+  <!-- Plymouth Satellite (centered, larger) -->
+  <g transform="translate(140,285) scale(2.8)">
+    <!-- Body -->
+    <rect x="4" y="6" width="70" height="10" rx="2" fill="#ff2d95"/>
+    <rect x="6" y="6" width="66" height="1.5" fill="#ff5aaa"/>
+    <!-- Roof -->
+    <rect x="36" y="1" width="22" height="6" rx="1" fill="#ff2d95"/>
+    <rect x="35" y="2" width="1" height="5" fill="#ff2d95"/>
+    <rect x="58" y="2" width="1" height="5" fill="#ff2d95"/>
+    <!-- Windows -->
+    <rect x="37" y="2" width="8" height="4" rx="1" fill="#00f0ff" opacity=".7"/>
+    <rect x="47" y="2" width="8" height="4" rx="1" fill="#00f0ff" opacity=".6"/>
+    <!-- Chrome stripe -->
+    <rect x="4" y="11" width="70" height="1.5" fill="#ffe600" opacity=".7" filter="url(#gy)"/>
+    <!-- Hood long section -->
+    <rect x="1" y="8" width="4" height="7" fill="#cc1a70"/>
+    <!-- Headlights -->
+    <rect x="0" y="9" width="3" height="3" rx="1" fill="#ffe600" filter="url(#gy)"/>
+    <!-- Taillights -->
+    <rect x="72" y="9" width="4" height="3" rx="1" fill="#ff2d55" filter="url(#gp)"/>
+    <!-- Bumpers -->
+    <rect x="-2" y="11" width="3" height="4" rx="1" fill="#888"/>
+    <rect x="75" y="11" width="3" height="4" rx="1" fill="#888"/>
+    <!-- Wheels -->
+    <circle cx="18" cy="18" r="4.5" fill="#111"/>
+    <circle cx="18" cy="18" r="2.5" fill="#444"/>
+    <circle cx="18" cy="18" r="1" fill="#666"/>
+    <circle cx="58" cy="18" r="4.5" fill="#111"/>
+    <circle cx="58" cy="18" r="2.5" fill="#444"/>
+    <circle cx="58" cy="18" r="1" fill="#666"/>
+    <!-- Exhaust glow -->
+    <rect x="76" y="13" width="6" height="2" rx="1" fill="#ff2d95" opacity=".3"/>
+  </g>
+
+  <!-- Neon bottom border on road -->
+  <line x1="0" y1="361" x2="512" y2="361" stroke="#ff2d95" stroke-width="2" filter="url(#gp)" opacity=".7"/>
+
+  <!-- "10-4 GOOD BUDDY" -->
+  <text x="256" y="415" fill="#00f0ff" font-family="monospace" font-size="28" font-weight="700" text-anchor="middle" letter-spacing="3" filter="url(#gc)" opacity=".8">10-4 GOOD BUDDY</text>
+
+  <!-- Neon horizontal line accent -->
+  <line x1="80" y1="445" x2="432" y2="445" stroke="#ff2d95" stroke-width="2" filter="url(#gp)" opacity=".5"/>
+
+  <!-- "BUILT BY CLAUDE" small -->
+  <text x="256" y="478" fill="#b347ea" font-family="monospace" font-size="18" text-anchor="middle" letter-spacing="4" opacity=".5">BUILT BY CLAUDE</text>
 </svg>
